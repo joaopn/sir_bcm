@@ -1,1 +1,1 @@
-from sir_bcm import model, plotting, analysis
+from sir_bcm import model, plotting, analysis, dask
