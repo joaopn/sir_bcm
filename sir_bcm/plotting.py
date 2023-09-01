@@ -101,17 +101,17 @@ def visualize_sample_opinions_all(activity_matrix, influences, sample_size):
 
 import matplotlib.pyplot as plt
 
-def plot_clusters(df, epsilon, mu):
+def plot_clusters(df, epsilon, mu, variable = 'n_users'):
     """Plot a stacked bar chart of clusters for the dataframe from the parameter space exploration
     """
 
-    df_selected = df[(df.epsilon == epsilon) & (df.mu == mu)]
+    df_selected = df[(df.epsilon == epsilon) & (df.mu == mu)].copy()  # create a copy to avoid modifying the original df
     
     # Group 4 and above clusters into a '4+' category
-    df_selected['n_clusters'] = df_selected['n_clusters'].apply(lambda x: '4+' if x >= 4 else x)
+    df_selected.loc[:, 'n_clusters'] = df_selected['n_clusters'].apply(lambda x: '4+' if x >= 4 else x)
     
     # Count occurrences of each cluster number
-    cluster_counts = df_selected.groupby(['n_users', 'n_clusters']).size().unstack().fillna(0)
+    cluster_counts = df_selected.groupby([variable, 'n_clusters']).size().unstack()
     
     # Create custom color map
     unique_clusters = cluster_counts.columns.sort_values()
@@ -135,7 +135,6 @@ def plot_clusters(df, epsilon, mu):
     
     ax = cluster_counts.plot(kind='bar', stacked=True, figsize=(10,6), color=colors)
     plt.title(f'Stacked Bar of Clusters for epsilon={epsilon}, mu={mu}')
-    plt.xlabel('Number of Users')
     plt.ylabel('Count')
     plt.legend(title='Number of Clusters')
     plt.show()
