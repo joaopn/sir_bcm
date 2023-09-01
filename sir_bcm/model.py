@@ -1,7 +1,9 @@
 import numpy as np
 
 
-def initialize_users(n_users):
+def initialize_users(n_users, seed=None):
+    if seed is not None:
+        np.random.seed(seed)
     opinions = np.random.uniform(0, 1, n_users)
     influences = np.random.uniform(0, 1, n_users)
     return opinions, influences
@@ -22,7 +24,7 @@ def has_stabilized(opinion_matrix, t, n_average, stop_tol):
     max_variance = np.max(variances)
     return max_variance < stop_tol
 
-def run_model(n_users, t_max, epsilon, mu, n_average=10, stop_tol=1e-6):
+def run_model(n_users, t_max, epsilon, mu, n_average=10, stop_tol=1e-6, seed=None):
     """Run the model for n_users, t_max, epsilon, and mu.
 
     Parameters
@@ -52,7 +54,7 @@ def run_model(n_users, t_max, epsilon, mu, n_average=10, stop_tol=1e-6):
         Stopping timestep.
     """
     
-    opinions, influences = initialize_users(n_users)
+    opinions, influences = initialize_users(n_users, seed)
     opinion_matrix = np.zeros((t_max, n_users))
     opinion_matrix[0] = opinions.copy()
 
