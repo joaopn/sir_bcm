@@ -73,12 +73,3 @@ def run_model(n_users, t_max, epsilon, mu, n_average=10, stop_tol=1e-6, seed=Non
             return opinion_matrix[:t+1], influences, t
         
     raise ValueError(f"Model did not stabilize within {t_max} timesteps!")
-
-# Running the main function again with redefined functions
-try:
-    activity, influences, t_stop = run_model(N, timesteps, epsilon, mu, stop_tol=1e-7)
-    result_run_model = "Success"
-except Exception as e:
-    result_run_model = str(e)
-
-result_run_model

@@ -28,7 +28,7 @@ def visualize_mean_and_std(activity_matrix):
     plt.tight_layout()
     plt.show()
 
-def visualize_sample_opinions(activity_matrix, influences, sample_size, sample_type='random', log_influence = True):
+def visualize_sample_opinions(activity_matrix, influences, sample_size, sample_type='random', log_influence = False):
     
     change = activity_matrix[-1] - activity_matrix[0]
     
@@ -87,7 +87,7 @@ def visualize_sample_opinions(activity_matrix, influences, sample_size, sample_t
 
     return traces, title
 
-def visualize_sample_opinions_all(activity_matrix, influences, sample_size, log_influence = True):
+def visualize_sample_opinions_all(activity_matrix, influences, sample_size, log_influence = False):
     types = ['random', 'influence_top', 'change_top', 'influence_bottom']
     fig = sp.make_subplots(rows=2, cols=2, subplot_titles=[t.replace("_", " ").title() for t in types])
 

@@ -6,4 +6,11 @@ def count_clusters(activity, epsilon):
     data = activity.reshape(-1, 1)
 
     clusters = dbscan.fit_predict(data)
-    return len(set(clusters)) - (1 if -1 in clusters else 0)
+    
+    # Count number of isolated agents (no cluster)
+    n_isolated = (clusters == -1).sum()
+    
+    # Count the number of unique clusters excluding noise (-1)
+    n_clusters = len(set(clusters)) - (1 if -1 in clusters else 0)
+
+    return n_clusters, n_isolated
