@@ -1,1 +1,1 @@
-from sir_bcm import model, plotting
+from sir_bcm import model, plotting, analysis
