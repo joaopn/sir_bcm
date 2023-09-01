@@ -98,3 +98,43 @@ def visualize_sample_opinions_all(activity_matrix, influences, sample_size):
     )
     
     fig.show()
+
+import matplotlib.pyplot as plt
+
+def plot_clusters(df, epsilon, mu, variable = 'n_users'):
+    """Plot a stacked bar chart of clusters for the dataframe from the parameter space exploration
+    """
+
+    df_selected = df[(df.epsilon == epsilon) & (df.mu == mu)].copy()  # create a copy to avoid modifying the original df
+    
+    # Group 4 and above clusters into a '4+' category
+    df_selected.loc[:, 'n_clusters'] = df_selected['n_clusters'].apply(lambda x: '4+' if x >= 4 else x)
+    
+    # Count occurrences of each cluster number
+    cluster_counts = df_selected.groupby([variable, 'n_clusters']).size().unstack()
+    
+    # Create custom color map
+    unique_clusters = cluster_counts.columns.sort_values()
+    base_red = [1, 0, 0]
+    darkening_factor = 0.2
+
+    def darken_red(factor):
+        return (base_red[0] * (1 - factor), base_red[1], base_red[2])
+
+    colors = []
+    for cluster in unique_clusters:
+        if cluster == 1:
+            colors.append('tab:green')
+        elif cluster == 2:
+            colors.append('tab:red')
+        else:
+            # We assume here that clusters are sorted in increasing order
+            # And that after 2, the next is either 3 or '4+' 
+            darkening_amount = (int(cluster) - 2) * darkening_factor
+            colors.append(darken_red(darkening_amount))
+    
+    ax = cluster_counts.plot(kind='bar', stacked=True, figsize=(10,6), color=colors)
+    plt.title(f'Stacked Bar of Clusters for epsilon={epsilon}, mu={mu}')
+    plt.ylabel('Count')
+    plt.legend(title='Number of Clusters')
+    plt.show()
