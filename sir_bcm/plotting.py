@@ -28,7 +28,7 @@ def visualize_mean_and_std(activity_matrix):
     plt.tight_layout()
     plt.show()
 
-def visualize_sample_opinions(activity_matrix, influences, sample_size, sample_type='random'):
+def visualize_sample_opinions(activity_matrix, influences, sample_size, sample_type='random', log_influence = True):
     
     change = activity_matrix[-1] - activity_matrix[0]
     
@@ -62,6 +62,13 @@ def visualize_sample_opinions(activity_matrix, influences, sample_size, sample_t
     
     sample_opinions = activity_matrix[:, sample_indices]
     sample_influences = influences[sample_indices]
+    if log_influence:
+        sample_influences = np.log10(sample_influences)
+        if max(sample_influences) > 0:
+            sample_influences = sample_influences / max(sample_influences)
+        
+            
+
     sample_ids = np.arange(len(activity_matrix[0]))[sample_indices]
     
     colors = [f"rgba({255*c}, {255*(1-c)}, {255*0.5}, 0.5)" for c in sample_influences]
@@ -80,12 +87,12 @@ def visualize_sample_opinions(activity_matrix, influences, sample_size, sample_t
 
     return traces, title
 
-def visualize_sample_opinions_all(activity_matrix, influences, sample_size):
+def visualize_sample_opinions_all(activity_matrix, influences, sample_size, log_influence = True):
     types = ['random', 'influence_top', 'change_top', 'influence_bottom']
     fig = sp.make_subplots(rows=2, cols=2, subplot_titles=[t.replace("_", " ").title() for t in types])
 
     for i, t in enumerate(types):
-        traces, title = visualize_sample_opinions(activity_matrix, influences, sample_size, sample_type=t)
+        traces, title = visualize_sample_opinions(activity_matrix, influences, sample_size, sample_type=t, log_influence = log_influence)
         for trace in traces:
             fig.add_trace(trace, row=(i // 2) + 1, col=(i % 2) + 1)
 
