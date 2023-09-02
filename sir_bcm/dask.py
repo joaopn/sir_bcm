@@ -1,7 +1,7 @@
 import pandas as pd
 import random
 from dask import delayed, compute
-from dask.distributed import Client, LocalCluster
+from dask.distributed import Client, TimeoutError
 from sir_bcm.model_numba import run_model
 from sir_bcm.analysis import count_clusters
 
@@ -36,15 +36,14 @@ def simulate_and_analyze(n_users, t_max, epsilon, mu, trial, n_average=10, stop_
             "stop_tol": stop_tol  # Added stop_tol to the results
         }
 
-def parallel_analysis(n_users, t_max, epsilons, mus, n_trials, n_cores=None, n_average=10, stop_tol=1e-6):
-    if n_cores:
-        # Start LocalCluster with the dashboard address
-        cluster = LocalCluster(n_workers=n_cores, threads_per_worker=1, dashboard_address=':8787')
-        client = Client(cluster)
+def parallel_analysis(n_users, t_max, epsilons, mus, n_trials, cluster_ip, n_average=10, stop_tol=1e-6):
+    scheduler_address = f"tcp://{cluster_ip}:8786"
+    try:
+        # Attempt to connect to the cluster
+        client = Client(scheduler_address, timeout=5)  # Timeout in 5 seconds if no connection
+    except TimeoutError:
+        raise RuntimeError(f"Failed to connect to the Dask cluster at {scheduler_address}. Ensure the cluster is up and running.")
 
-        # Print the link to the dashboard
-        print(f"Dask dashboard is available at {client.dashboard_link}")
-    
     results = []
     for epsilon in epsilons:
         for mu in mus:
@@ -53,8 +52,8 @@ def parallel_analysis(n_users, t_max, epsilons, mus, n_trials, n_cores=None, n_a
     
     df_results = pd.DataFrame(compute(*results))
     
-    if n_cores:
-        client.close()
-        cluster.close()
+    client.close()
     
     return df_results
+
+    
