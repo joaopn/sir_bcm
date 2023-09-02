@@ -38,8 +38,12 @@ def simulate_and_analyze(n_users, t_max, epsilon, mu, trial, n_average=10, stop_
 
 def parallel_analysis(n_users, t_max, epsilons, mus, n_trials, n_cores=None, n_average=10, stop_tol=1e-6):
     if n_cores:
-        cluster = LocalCluster(n_workers=n_cores, threads_per_worker=1)
+        # Start LocalCluster with the dashboard address
+        cluster = LocalCluster(n_workers=n_cores, threads_per_worker=1, dashboard_address=':8787')
         client = Client(cluster)
+
+        # Print the link to the dashboard
+        print(f"Dask dashboard is available at {client.dashboard_link}")
     
     results = []
     for epsilon in epsilons:
