@@ -2,7 +2,7 @@ import pandas as pd
 import random
 from dask import delayed, compute
 from dask.distributed import Client, LocalCluster
-from sir_bcm.model import run_model
+from sir_bcm.model_numba import run_model
 from sir_bcm.analysis import count_clusters
 
 @delayed
