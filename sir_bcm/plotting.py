@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import plotly.subplots as sp
 import plotly.graph_objects as go
 import numpy as np
+import ast
 
 def visualize_mean_and_std(activity_matrix):
     mean_opinions = activity_matrix.mean(axis=1)
@@ -16,13 +17,13 @@ def visualize_mean_and_std(activity_matrix):
     plt.title('Evolution of Mean Opinion')
     plt.xlim(0, len(mean_opinions))
     plt.legend()
+    plt.ylim(0,1)
 
     plt.subplot(1, 2, 2)
     plt.plot(std_opinions, label="Standard Deviation", color='orange')
     plt.xlabel('Timesteps')
     plt.ylabel('Standard Deviation')
     plt.title('Evolution of Opinion Standard Deviation')
-    plt.xlim(0, len(std_opinions))
     plt.legend()
 
     plt.tight_layout()
@@ -58,7 +59,7 @@ def visualize_sample_opinions(activity_matrix, influences, sample_size, sample_t
         title = 'Opinion Evolution of Users with Least Opinion Change'
     else:  # default to random
         sample_indices = np.random.choice(len(activity_matrix[0]), size=sample_size, replace=False)
-        title = 'Opinion Evolution of Random Sample of Users'
+        title = 'Opinion Evolution'
     
     sample_opinions = activity_matrix[:, sample_indices]
     sample_influences = influences[sample_indices]
@@ -106,16 +107,17 @@ def visualize_sample_opinions_all(activity_matrix, influences, sample_size, log_
     
     fig.show()
 
-import matplotlib.pyplot as plt
-
-def plot_clusters(df, epsilon, mu, variable = 'n_users'):
+def plot_clusters(df, epsilon, mu, variable = 'n_users', title = None, export_figure = None, show_legend = False):
     """Plot a stacked bar chart of clusters for the dataframe from the parameter space exploration
     """
+
+    #sets font size to 20
+    plt.rcParams.update({'font.size': 20})
 
     df_selected = df[(df.epsilon == epsilon) & (df.mu == mu)].copy()  # create a copy to avoid modifying the original df
     
     # Group 4 and above clusters into a '4+' category
-    df_selected.loc[:, 'n_clusters'] = df_selected['n_clusters'].apply(lambda x: '4+' if x >= 4 else x)
+    df_selected.loc[:, 'n_clusters'] = df_selected['n_clusters'].apply(lambda x: 4 if x >= 4 else x)
     
     # Count occurrences of each cluster number
     cluster_counts = df_selected.groupby([variable, 'n_clusters']).size().unstack()
@@ -123,7 +125,7 @@ def plot_clusters(df, epsilon, mu, variable = 'n_users'):
     # Create custom color map
     unique_clusters = cluster_counts.columns.sort_values()
     base_red = [1, 0, 0]
-    darkening_factor = 0.2
+    darkening_factor = 0.4
 
     def darken_red(factor):
         return (base_red[0] * (1 - factor), base_red[1], base_red[2])
@@ -141,7 +143,65 @@ def plot_clusters(df, epsilon, mu, variable = 'n_users'):
             colors.append(darken_red(darkening_amount))
     
     ax = cluster_counts.plot(kind='bar', stacked=True, figsize=(10,6), color=colors)
-    plt.title(f'Stacked Bar of Clusters for epsilon={epsilon}, mu={mu}')
+    if title is None:
+        plt.title(f'Stacked Bar of Clusters for epsilon={epsilon}, mu={mu}')
+    else:
+        plt.title(title)
     plt.ylabel('Count')
-    plt.legend(title='Number of Clusters')
+    #horizontal xticklabel
+    plt.xticks(rotation=0)
+    plt.xlabel('Size')
+    if show_legend:
+        plt.legend(title='# clusters', loc='lower right')
+    else:
+        plt.legend().set_visible(False)
+    
+
+    if export_figure is not None:
+        plt.savefig(export_figure, bbox_inches='tight')
+
     plt.show()
+
+def heatmap(df, epsilon, mu, n_users, title=None, export_figure=None):
+
+    mean_opinion = df[(df.epsilon == epsilon) & (df.mu == mu) & (df.n_users == n_users)]['cluster_means'].apply(
+        lambda x: [float(i) for i in ast.literal_eval(x)]).to_list()
+
+    interval_size = 20  # how many intervals in [0,1]
+    data = np.zeros((4, interval_size))  # Always create a 4 x interval_size matrix
+
+    intervals = [[start/interval_size, (start + interval_size)/interval_size] for start in range(
+        0, interval_size**2, interval_size)]  # Generate the interval vector using list comprehension
+
+    for cluster in mean_opinion:
+        for opinion in cluster:
+            row_idx = len(cluster) - 1
+            if row_idx >= 4:
+                row_idx = 3
+
+            if opinion == 1:
+                data[row_idx][interval_size - 1] += 1
+            else:
+                start = [start for start, end in intervals if start <= opinion * interval_size < end]
+                data[row_idx][int(start[0])] += 1
+
+    extent = [1, 5, 0, 1]  # Changed x-axis max value to 5 for proper visualization
+    plt.imshow(data.T, cmap='Greys', extent=extent) 
+
+    plt.xlabel('Count of Clusters')
+    plt.ylabel('Mean cluster opinion')  # Terrible names
+
+    xticks_1 = np.arange(1.5, 5.1, 1).tolist()  # Always use [1.5, 2.5, 3.5, 4.5] for x-tick positions
+    xticks_2 = [f'{i}' for i in range(1, 5)]  # Always use [1, 2, 3, 4] for x-tick labels
+    plt.xticks(xticks_1, xticks_2)
+    
+    if title is not None:
+        plt.title(title)
+    
+    #plt.colorbar()
+
+
+    if export_figure is not None:
+        plt.savefig(export_figure, bbox_inches='tight')
+    plt.show()
+

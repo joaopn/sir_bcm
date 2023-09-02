@@ -2,3 +2,5 @@
 output
 *.ipynb
 *.code-workspace
+*.png
+model_results/
