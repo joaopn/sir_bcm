@@ -40,7 +40,7 @@ def initialize_users(n_users, seed=None):
 
 @jit(nopython=True)
 def select_influencer(influences):
-    normalized_influences = influences / np.sum(influences)
+    normalized_influences = np.ones(len(influences))
     return custom_choice(normalized_influences)
 
 @jit(nopython=True)
