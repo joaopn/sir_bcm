@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.cluster import DBSCAN
 
 def count_clusters(activity, epsilon):
@@ -13,4 +14,8 @@ def count_clusters(activity, epsilon):
     # Count the number of unique clusters excluding noise (-1)
     n_clusters = len(set(clusters)) - (1 if -1 in clusters else 0)
 
-    return n_clusters, n_isolated
+    # Calculate mean value of each cluster excluding noise (-1)
+    unique_clusters = [x for x in np.unique(clusters) if x != -1]
+    cluster_means = [data[clusters == cluster].mean() for cluster in unique_clusters]
+
+    return n_clusters, n_isolated, cluster_means
